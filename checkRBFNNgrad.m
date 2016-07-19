@@ -20,10 +20,11 @@
 clc;
 clear;
 settingRBFNNparameters;
+ num_minibatch =1;
 
-[cost,grad] = RBFNNCost(theta, visibleSize, hiddenSize,numClasses,lambda, features, labels, settings);
+[cost,grad] = RBFNNCost(theta, visibleSize, hiddenSize,numClasses,lambda, features, labels, settings, num_minibatch);
 
-numGrad = computeNumericalGradient( @(x)RBFNNCost(x, visibleSize, hiddenSize,numClasses,lambda, features, labels, settings), theta);
+numGrad = computeNumericalGradient( @(x)RBFNNCost(x, visibleSize, hiddenSize,numClasses,lambda, features, labels, settings, num_minibatch), theta);
 %%
 
 %%

@@ -12,7 +12,7 @@
           visibleSize = featurenum;
           hiddenSize  = neuronnum;
           numClasses = length(unique(labels)); 
-          lambda = 0.03;
+          lambda = 0.001;
           settings.sigmavalue = 'opt'; 
           settings.sparsityParam = 0.05; 
           settings.beta = 0.001;
