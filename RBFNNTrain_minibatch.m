@@ -19,7 +19,7 @@ if ~exist('options', 'var')
 end
 
 if ~isfield(options, 'maxIter')
-    options.maxIter = 1000;
+    options.maxIter = 100;
 end
 sigmavalue = settings.sigmavalue;
 sparsityParam = settings.sparsityParam;
@@ -92,8 +92,8 @@ for iteration = 1:maxepoch
         %error = sum(error(:) .^ 2) / batchNumPatches; 
    % fprintf('  %4d  %10.4f  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fSparsity+fWeight, fResidue, fSparsity, fWeight)
     fprintf('  %4d  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fWeight, fResidue, fWeight)
-    % Initial a new batch
-    indices = randperm(numSamples,batchNum);
+    % Initial a new batchs
+    indices = randperm(numSamples,batchSize);
     batchFeatures = features(:, indices);     
     batchLabels = labels(indices);
     
