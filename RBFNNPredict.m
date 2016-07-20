@@ -8,7 +8,14 @@ function [pred] = RBFNNPredict(RBFNNModel, features_test)
 % pred, where pred(i) is argmax_c P(y(c) | x(i)).
  
 %% Unroll the parameters from theta
-theta=RBFNNModel.optTheta;
+theta = RBFNNModel.optTheta;
+visibleSize = RBFNNModel.inputSize ;
+hiddenSize = RBFNNModel.hiddenSize;
+numClasses = RBFNNModel.numClasses;
+sigmavalue = RBFNNModel.settings.sigmavalue;
+sparsityParam = RBFNNModel.settings.sparsityParam;
+beta = RBFNNModel.settings.beta;
+obj = RBFNNModel.settings.beta;
 
 centroids = reshape(theta(1:hiddenSize*visibleSize), hiddenSize, visibleSize); % RBF centers
 
@@ -22,7 +29,7 @@ if isnumeric(sigmavalue)
 else
    sigma = theta(hiddenSize*(visibleSize+numClasses)+numClasses+1:hiddenSize*(visibleSize+numClasses)+numClasses+hiddenSize);
 end
-
+sample_num = size(features_test,2);
 %% predict
 for i = 1:hiddenSize  % calculate the output node by nodeb
     c_vector = centroids(i,:); % get the center of this node
@@ -36,16 +43,16 @@ a2 = exp(-z2);
 %calculate the output layer
 z3 = W2*a2 + repmat(b2,1,sample_num);
 
-if strcmp(settings.obj,'NonLineraLST')||strcmp(settings.obj,'Softmatrix')
+if strcmp(obj,'NonLineraLST')||strcmp(obj,'Softmatrix')
     label_pred = sigmoid(z3); 
-elseif strcmp(settings.obj,'LineraLST')
+elseif strcmp(obj,'LineraLST')
     label_pred = z3; 
 end
 %%
 
 
  % this provides a numClasses x inputSize matrix
-pred = zeros(1, size(data, 2));
+label_pred = zeros(1, size(features_test, 2));
 %  Instructions: Compute pred using theta assuming that the labels start 
 %                from 1.
 

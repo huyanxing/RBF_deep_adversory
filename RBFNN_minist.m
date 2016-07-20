@@ -8,14 +8,14 @@ close all;
 
 inputSize = 28 * 28; % Size of input vector (MNIST images are 28x28)
 numClasses = 10;     % Number of classes (MNIST images fall into 10 classes)
-hiddenSize = 200;
+hiddenSize = 121;
 lambda = 3e-3; % Weight decay parameter
 
 %%======================================================================
 %% STEP 1: Load data
 
-images = loadMNISTImages('/home/Stroge/Git/DATASETS/mnist/train-images-idx3-ubyte');
-labels = loadMNISTLabels('/home/Stroge/Git/DATASETS/mnist/train-labels-idx1-ubyte');
+images = loadMNISTImages('/home/remy/Codes/DataSets/mnist/train-images-idx3-ubyte');
+labels = loadMNISTLabels('/home/remy/Codes/DataSets/mnist/train-labels-idx1-ubyte');
 labels(labels==0) = 10; % Remap 0 to 10
 
 inputData = images;
@@ -40,27 +40,30 @@ end
 %%======================================================================
 %% STEP 4: Learning parameters
 settings.sigmavalue = 'opt'; 
-settings.sparsityParam = 0.05; 
+settings.sparsityParam = 1e-4; 
 settings.beta = 0;
 %settings.obj = 'NonLineraLST';
 %settings.obj = 'LineraLST'; 
 settings.obj = 'Softmax';
 options.maxIter = 1;
 
-RBFNNModel = RBFNNTrain(inputSize,  hiddenSize, numClasses, lambda, ...
-                            inputData, labels, settings, options);
+batchTrainingSetting.batchNum = 200;
+batchTrainingSetting.maxepoch = 1;
+
+RBFNNModel = RBFNNTrain_minibatch(inputSize,  hiddenSize, numClasses, lambda, ...
+                            inputData, labels, settings, batchTrainingSetting,options);
 
 %%======================================================================
 %% STEP 5: Testing
 %
 
-images = loadMNISTImages('/home/Stroge/Git/DATASETS/mnist/t10k-images-idx3-ubyte');
-labels = loadMNISTLabels('/home/Stroge/Git/DATASETS/mnist/t10k-labels-idx1-ubyte');
+images = loadMNISTImages('/home/remy/Codes/DataSets/mnist/t10k-images-idx3-ubyte');
+labels = loadMNISTLabels('/home/remy/Codes/DataSets/mnist/t10k-labels-idx1-ubyte');
 labels(labels==0) = 10; % Remap 0 to 10
 
 inputData = images;
-size(softmaxModel.optTheta)
-size(inputData)
+%size(softmaxModel.optTheta)
+%size(inputData)
 
 % You will have to implement softmaxPredict in softmaxPredict.m
 [pred] = RBFNNPredict(RBFNNModel, inputData);

@@ -79,9 +79,9 @@ else
 end
  
 weight_decay = 0.5*(sum(sum(W2.^2))+sum(sum(centroids.^2)));%the weigh dacay
-rho = (1/sample_num)*sum(a2,2);
-Regterm =  sum(sparsityParam.*log(sparsityParam./rho)+(1-sparsityParam).*log((1-sparsityParam)./(1-rho)));%Sparse regularization term
-cost_main =cost_main +lambda*weight_decay+beta*Regterm;
+%rho = (1/sample_num)*sum(a2,2);
+%Regterm =  sum(sparsityParam.*log(sparsityParam./rho)+(1-sparsityParam).*log((1-sparsityParam)./(1-rho)));%Sparse regularization term
+cost_main =cost_main +lambda*weight_decay;%+beta*Regterm;
 % regularization
 
 
@@ -110,8 +110,8 @@ W2grad = (1/sample_num).*W2grad + lambda*W2;
 b2grad = b2grad+sum(errorterm_3,2);
 b2grad = (1/sample_num)*b2grad;
 
-reg_grad =beta*(-sparsityParam./rho+(1-sparsityParam)./(1-rho));
-errorterm_2 = W2'*errorterm_3.*a2 + repmat(reg_grad,1,sample_num).*a2;
+%reg_grad =beta*(-sparsityParam./rho+(1-sparsityParam)./(1-rho));
+errorterm_2 = W2'*errorterm_3.*a2; %+ repmat(reg_grad,1,sample_num).*a2;
 
 for j = 1: hiddenSize
     errordiff = errorterm_2(j,:)*(z2_diff{j})';

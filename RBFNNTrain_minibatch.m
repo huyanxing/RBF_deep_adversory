@@ -1,4 +1,4 @@
-function [RBFNNModel] = RBFNNTrain_minibatch(visibleSize, hiddenSize, numClasses, lambda, features, labels, settings, batchNum, options)
+function [RBFNNModel] = RBFNNTrain_minibatch(visibleSize, hiddenSize, numClasses, lambda, features, labels, settings, batchTrainingSetting, options)
 %softmaxTrain Train a softmax model with the given parameters on the given
 % data. Returns softmaxOptTheta, a vector containing the trained parameters
 % for the model.
@@ -21,21 +21,27 @@ end
 if ~isfield(options, 'maxIter')
     options.maxIter = 1000;
 end
+sigmavalue = settings.sigmavalue;
+sparsityParam = settings.sparsityParam;
+beta = settings.beta;
 numSamples = length(labels); 
+batchNum = batchTrainingSetting.batchNum;
 batchSize = numSamples/batchNum;
 
 
 % Initial batch
-indices = randperm(numSamples,batchNum);
+indices = randperm(numSamples,batchSize);
 batchFeatures = features(:, indices);     
 batchLabels = labels(indices);
 
 % initialize parameter Theta 
 theta = initializeRBFNNParameters(hiddenSize, visibleSize,numClasses,settings);
 % Use minFunc to minimize the function
-fprintf('%6s%12s%12s%12s%12s\n','Iter', 'fObj','fResidue','fSparsity','fWeight');
+%fprintf('%6s%12s%12s%12s%12s\n','Iter', 'fObj','fResidue','fSparsity','fWeight');
+fprintf('%6s%12s%12s%12s%12s\n','Iter', 'fObj','fResidue','fWeight');
 warning off;
-for iteration = 1:200   
+maxepoch = batchTrainingSetting.maxepoch;
+for iteration = 1:maxepoch
     % Reading the paremeters   
     centroids = reshape(theta(1:hiddenSize*visibleSize), hiddenSize, visibleSize); % RBF centers
     %centroidsgrad = zeros(size(centroids));
@@ -52,6 +58,7 @@ for iteration = 1:200
        sigma = theta(hiddenSize*(visibleSize+numClasses)+numClasses+1:hiddenSize*(visibleSize+numClasses)+numClasses+hiddenSize);
        %sigmagrad = zeros(size(sigma));
     end
+    
     groundTruth = full(sparse(batchLabels, 1:batchSize, 1));
     
     z2 = zeros(hiddenSize,batchSize); 
@@ -78,27 +85,27 @@ for iteration = 1:200
     end
     
     fResidue = error;
-    fWeight = 0.5*lamada*(sum(sum(W2.^2))+sum(sum(centroids.^2)));
-    rho = (1/sample_num)*sum(a2,2);
-    fSparsity =  sum(sparsityParam.*log(sparsityParam./rho)+(1-sparsityParam).*log((1-sparsityParam)./(1-rho)));
+    fWeight = 0.5*lambda*(sum(sum(W2.^2))+sum(sum(centroids.^2)));
+    %rho = (1/batchSize)*sum(a2,2);
+    %fSparsity =  beta*(sum(sparsityParam.*log(sparsityParam./rho)+(1-sparsityParam).*log((1-sparsityParam)./(1-rho))));
          %error = weightMatrix * featureMatrix - batchPatches;
         %error = sum(error(:) .^ 2) / batchNumPatches; 
-    fprintf('  %4d  %10.4f  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fSparsity+fWeight, fResidue, fSparsity, fWeight)
-    
+   % fprintf('  %4d  %10.4f  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fSparsity+fWeight, fResidue, fSparsity, fWeight)
+    fprintf('  %4d  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fWeight, fResidue, fWeight)
     % Initial a new batch
     indices = randperm(numSamples,batchNum);
     batchFeatures = features(:, indices);     
     batchLabels = labels(indices);
     
-    options.maxIter = 20;
-    %addpath minFunc/
-    options.Method = 'lbfgs'; %
+    options.maxIter = 100;
+    addpath minFunc/
+    options.Method = 'cg'; %
     options.display = 'on';
     
     fprintf(' ... Start training the %dth minibatch... \n', iteration)
     
     [theta, cost] = minFunc( @(p) RBFNNCost(p, ...
-                                   inputSize, hiddenSize,numClasses,lambda, features, labels, settings), ...                                   
+                                   visibleSize, hiddenSize,numClasses,lambda, batchFeatures, batchLabels, settings), ...                                   
                                    theta, options);
      fprintf(' ... Finished training the %dth minibatch... \n', iteration)                           
 end
@@ -107,8 +114,8 @@ end
                           
                           
 % Fold softmaxOptTheta into a nicer format
-RBFNNModel.optTheta = RBFNNOptTheta;
-RBFNNModel.inputSize = inputSize;
+RBFNNModel.optTheta = theta;
+RBFNNModel.inputSize = visibleSize;
 RBFNNModel.hiddenSize = hiddenSize;
 RBFNNModel.numClasses = numClasses;
 RBFNNModel.settings = settings;
