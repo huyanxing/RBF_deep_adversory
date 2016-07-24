@@ -45,10 +45,10 @@ settings.beta = 0;
 %settings.obj = 'NonLineraLST';
 %settings.obj = 'LineraLST'; 
 settings.obj = 'Softmax';
-options.maxIter = 1;
+options.maxIter = 1000;
 
 batchTrainingSetting.batchNum = 200;
-batchTrainingSetting.maxepoch = 1;
+batchTrainingSetting.maxepoch = 100;
 
 RBFNNModel = RBFNNTrain_minibatch(inputSize,  hiddenSize, numClasses, lambda, ...
                             inputData, labels, settings, batchTrainingSetting,options);
