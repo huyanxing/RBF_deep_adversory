@@ -1,7 +1,7 @@
-function theta = initializeRBFParameters(hiddenSize, visibleSize,sigmasetting)
+function theta = initializeRBFAutoencodeParameters(hiddenSize, visibleSize,settings)
 %function [theta,centroids] = initializeParameters(hiddenSize, visibleSize)
 %% Initialize parameters randomly based on layer sizes.
-if nargin<=2
+if  ~strcmp(settings.sigmavalue,'opt')
     r  = sqrt(6) / sqrt(hiddenSize+visibleSize+1);   % we'll choose weights uniformly from the interval [-r, r]
     centroids = rand(hiddenSize, visibleSize) * 2 * r - r;
     W2 = rand(visibleSize, hiddenSize) * 2 * r - r;

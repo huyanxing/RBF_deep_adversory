@@ -1,4 +1,4 @@
-function [pred] = RBFNNPredict(RBFNNModel, features_test)
+ function [pred] = RBFNNPredict(RBFNNModel, features_test)
 
 % softmaxModel - model trained using softmaxTrain
 % data - the N x M input matrix, where each column data(:, i) corresponds to

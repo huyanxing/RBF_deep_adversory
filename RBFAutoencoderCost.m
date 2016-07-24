@@ -1,5 +1,4 @@
-function [cost,grad] = Rbf_autoencoderCost(theta, visibleSize, hiddenSize, sigmavalue...
-                                                            ,lambda, sparsityParam, beta, data)
+function [cost,grad] = RBFAutoencoderCost(theta, visibleSize, hiddenSize,lambda,settings, data)
 %%                                                         
 % Instructions:
 %   Copy sparseAutoencoderCost in sparseAutoencoderCost.m from your
@@ -14,10 +13,14 @@ function [cost,grad] = Rbf_autoencoderCost(theta, visibleSize, hiddenSize, sigma
 % beta: weight of sparsity penalty term
 % data: training sample. 
 % subfeaturenum : To show the number of features in each data matrix
-% K: parameter for CCA calculation 
 % The input theta is a vector (because minFunc expects the parameters to be a vector). 
 % We first convert theta to the (W1, W2, b1, b2) matrix/vector format, so that this 
 % follows the notation convention of the lecture notes. 
+
+
+sigmavalue = settings.sigmavalue;
+sparsityParam = settings.sparsityParam;
+beta = settings.beta;
 
 centroids = reshape(theta(1:hiddenSize*visibleSize), hiddenSize, visibleSize); % RBF centers
 centroidsgrad = zeros(size(centroids));
@@ -69,11 +72,11 @@ a3 = sigmoid(z3);
 cost_main = (0.5/sample_num)*sum(sum(((data-a3)').^2));
 % regularization
 weight_decay = 0.5*(sum(sum(W2.^2))+sum(sum(centroids.^2)));%the weigh dacay
-rho = (1/sample_num)*sum(a2,2);
-Regterm =  sum(sparsityParam.*log(sparsityParam./rho)+(1-sparsityParam).*log((1-sparsityParam)./(1-rho)));%Sparse regularization term
+%rho = (1/sample_num)*sum(a2,2);
+%Regterm =  sum(sparsityParam.*log(sparsityParam./rho)+(1-sparsityParam).*log((1-sparsityParam)./(1-rho)));%Sparse regularization term
 
 %error=least squre+regularization 
-cost_main =cost_main +lambda*weight_decay+beta*Regterm;
+cost_main =cost_main +lambda*weight_decay;%+beta*Regterm;
 cost=cost_main;
 %****** finish adjusting ************************** 
 
@@ -88,8 +91,8 @@ W2grad = (1/sample_num).*W2grad + lambda*W2;
 b2grad = b2grad+sum(errorterm_3,2);
 b2grad = (1/sample_num)*b2grad;
 
-reg_grad =beta*(-sparsityParam./rho+(1-sparsityParam)./(1-rho));
-errorterm_2 = W2'*errorterm_3.*a2 + repmat(reg_grad,1,sample_num).*a2;
+%reg_grad =beta*(-sparsityParam./rho+(1-sparsityParam)./(1-rho));
+errorterm_2 = W2'*errorterm_3.*a2; %+ repmat(reg_grad,1,sample_num).*a2;
 
 for j = 1: hiddenSize
     errordiff = errorterm_2(j,:)*(z2_diff{j})';
