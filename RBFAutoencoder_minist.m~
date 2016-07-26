@@ -12,8 +12,8 @@ settings.beta=0.0002;
 
 trainData = loadMNISTImages('/home/Stroge/Git/DATASETS/mnist/train-images-idx3-ubyte');
 %batchTrainingSetting.batchNum = 200;
-batchTrainingSetting.maxepoch = 60000*1000;
+%batchTrainingSetting.maxepoch = 4;
 batchTrainingSetting.isStochastic = 1; 
-options.maxIter = 10; 
+options.maxIter = 1000; 
 
-OptTheta = RBFAutoencoderTrain_minibatch(inputSize, hiddenSize, lambda, trainData, settings, batchTrainingSetting, options);
+batchTrainingSetting.isStochastic ~= 1

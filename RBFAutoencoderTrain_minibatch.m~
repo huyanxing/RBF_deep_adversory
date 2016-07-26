@@ -26,20 +26,30 @@ sigmavalue = settings.sigmavalue;
 sparsityParam = settings.sparsityParam;
 beta = settings.beta;
 numSamples = size(Data,2);
-batchNum = batchTrainingSetting.batchNum;
-batchSize = numSamples/batchNum;
+if batchTrainingSetting.isStochastic ~= 1
+    batchNum = batchTrainingSetting.batchNum;
+    batchSize = numSamples/batchNum;
+else 
+    batchSize = 1;
+end
 
 
 % Initial batch
-indices = randperm(numSamples,batchSize);
-batchData = Data(:, indices);     
+if batchTrainingSetting.isStochastic ~= 1
+    indices = randperm(numSamples,batchSize);
+    batchData = Data(:, indices);    
+else 
+    indices = 1;
+    batchData = Data(:, indices);    
+end
+ 
 
 
 % initialize parameter Theta 
 theta = initializeRBFAutoencodeParameters(hiddenSize, visibleSize,settings);
 % Use minFunc to minimize the function
 %fprintf('%6s%12s%12s%12s%12s\n','Iter', 'fObj','fResidue','fSparsity','fWeight');
-fprintf('%6s%12s%12s%12s%12s\n','Iter', 'fObj','fResidue','fWeight');
+fprintf('%6s%12s%12s%12s \n','Iter', 'fObj','fResidue','fWeight');
 warning off;
 maxepoch = batchTrainingSetting.maxepoch;
 
@@ -60,7 +70,7 @@ for iteration = 1:maxepoch
     for i = 1:hiddenSize  % calculate the output node by nodeb
         c_vector = centroids(i,:); % get the center of this node
         c_matrix{i} = repmat(c_vector,[batchSize,1]);
-        z2_diff{i} =  batchDataAa - c_matrix{i}';
+        z2_diff{i} =  batchData - c_matrix{i}';
         z2(i,:) = (arrayfun(@(x)(sum(z2_diff{i}(:,x).^2)),1:size(z2_diff{i},2)))/(2*(sigma(i))^2);
     end
     a2 = exp(-z2);
@@ -71,17 +81,24 @@ for iteration = 1:maxepoch
     
     fResidue = error;
     fWeight = 0.5*lambda*(sum(sum(W2.^2))+sum(sum(centroids.^2)));
-    rho = (1/batchSize)*sum(a2,2);
-    fSparsity =  beta*(sum(sparsityParam.*log(sparsityParam./rho)+(1-sparsityParam).*log((1-sparsityParam)./(1-rho))));
-    fprintf('  %4d  %10.4f  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fSparsity+fWeight, fResidue, fSparsity, fWeight) 
-    %fprintf('  %4d  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fWeight, fResidue, fWeight)
+    %rho = (1/batchSize)*sum(a2,2);
+    %fSparsity =  beta*(sum(sparsityParam.*log(sparsityParam./rho)+(1-sparsityParam).*log((1-sparsityParam)./(1-rho))));
+    %fSparsity = 0; 
+    %fprintf('  %4d  %10.4f  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fSparsity+fWeight, fResidue, fSparsity, fWeight) 
+    fprintf('  %4d  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fWeight, fResidue, fWeight)
     % Initial a new batch
-    indices = randperm(numSamples,batchSize);
-    batchData = Data(:, indices);  
     
-    options.maxIter = 100;
+    if batchTrainingSetting.isStochastic ~= 1
+        indices = randperm(numSamples,batchSize);
+        batchData = Data(:, indices);  
+    else 
+        indices = indices;
+        batchData = Data(:, indices);    
+    end
+    
+%    options.maxIter = 20;
     addpath minFunc/
-    options.Method = 'cg'; %
+    options.Method = 'lbfgs'; %
     options.display = 'on';
     
     fprintf(' ... Start training the %dth minibatch... \n', iteration)
@@ -89,7 +106,10 @@ for iteration = 1:maxepoch
     [theta, cost] = minFunc( @(p) RBFAutoencoderCost(p, ...
                                    visibleSize, hiddenSize,lambda,settings,  batchData), ...                                   
                                    theta, options);
-     fprintf(' ... Finished training the %dth minibatch... \n', iteration)                           
+    if batchTrainingSetting. isStochastic == 1                           
+    indices = indices+1;
+    end
+    fprintf(' ... Finished training the %dth minibatch... \n', iteration)                           
 end
 
          

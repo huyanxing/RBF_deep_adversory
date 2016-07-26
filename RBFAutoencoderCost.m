@@ -77,7 +77,7 @@ weight_decay = 0.5*(sum(sum(W2.^2))+sum(sum(centroids.^2)));%the weigh dacay
 
 %error=least squre+regularization 
 cost_main =cost_main +lambda*weight_decay;%+beta*Regterm;
-cost=cost_main;
+cost=cost_main
 %****** finish adjusting ************************** 
 
 

@@ -26,13 +26,23 @@ sigmavalue = settings.sigmavalue;
 sparsityParam = settings.sparsityParam;
 beta = settings.beta;
 numSamples = size(Data,2);
-batchNum = batchTrainingSetting.batchNum;
-batchSize = numSamples/batchNum;
+if batchTrainingSetting.isStochastic ~= 1
+    batchNum = batchTrainingSetting.batchNum;
+    batchSize = numSamples/batchNum;
+else 
+    batchSize = 1;
+end
 
 
 % Initial batch
-indices = randperm(numSamples,batchSize);
-batchData = Data(:, indices);     
+if batchTrainingSetting.isStochastic ~= 1
+    indices = randperm(numSamples,batchSize);
+    batchData = Data(:, indices);    
+else 
+    indices = 1;
+    batchData = Data(:, rem(indices,numSamples));    
+end
+ 
 
 
 % initialize parameter Theta 
@@ -77,10 +87,17 @@ for iteration = 1:maxepoch
     %fprintf('  %4d  %10.4f  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fSparsity+fWeight, fResidue, fSparsity, fWeight) 
     fprintf('  %4d  %10.4f  %10.4f  %10.4f\n', iteration, fResidue+fWeight, fResidue, fWeight)
     % Initial a new batch
-    indices = randperm(numSamples,batchSize);
-    batchData = Data(:, indices);  
     
-    options.maxIter = 100;
+    if batchTrainingSetting.isStochastic ~= 1
+        indices = randperm(numSamples,batchSize);
+        batchData = Data(:, indices);  
+    elseif  rem(indices,numSamples) ~= 0
+        batchData = Data(:, rem(indices,numSamples)); 
+    else
+        batchData = Data(:, end);      
+    end
+    
+%    options.maxIter = 20;
     addpath minFunc/
     options.Method = 'lbfgs'; %
     options.display = 'on';
@@ -90,7 +107,10 @@ for iteration = 1:maxepoch
     [theta, cost] = minFunc( @(p) RBFAutoencoderCost(p, ...
                                    visibleSize, hiddenSize,lambda,settings,  batchData), ...                                   
                                    theta, options);
-     fprintf(' ... Finished training the %dth minibatch... \n', iteration)                           
+    if batchTrainingSetting. isStochastic == 1                           
+    indices = indices+1;
+    end
+    fprintf(' ... Finished training the %dth minibatch... \n', iteration)                           
 end
 
          
