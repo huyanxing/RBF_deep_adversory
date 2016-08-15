@@ -46,7 +46,11 @@ end
 
 
 % initialize parameter Theta 
-theta = initializeRBFAutoencodeParameters(hiddenSize, visibleSize,settings);
+if exist('OptTheta')
+    theta = OptTheta;
+else
+    theta = initializeRBFAutoencodeParameters(hiddenSize, visibleSize,settings);
+end
 % Use minFunc to minimize the function
 %fprintf('%6s%12s%12s%12s%12s\n','Iter', 'fObj','fResidue','fSparsity','fWeight');
 fprintf('%6s%12s%12s%12s \n','Iter', 'fObj','fResidue','fWeight');
@@ -100,7 +104,7 @@ for iteration = 1:maxepoch
 %    options.maxIter = 20;
     addpath minFunc/
     options.Method = 'lbfgs'; %
-    options.display = 'on';
+    options.display = 'off';
     
     fprintf(' ... Start training the %dth minibatch... \n', iteration)
     
